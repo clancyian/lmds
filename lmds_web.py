@@ -21,6 +21,7 @@ class index:
         return render.formtest(form)
 
     def POST(self):
+	imageList = []
         form = myform()
         if not form.validates():
             return render.formtest(form)
@@ -38,8 +39,9 @@ class index:
             rs = bucket.list(prefix=form.d.image)
 
             for key in rs:
-                myfile = bucket.get_key(key.name)
-                myfile.get_contents_to_filename(key.name)
+		print key.name
+                #myfile = bucket.get_key(key.name)
+                #myfile.get_contents_to_filename(key.name)
 
                 url = conn.generate_url(
                     60,
@@ -48,7 +50,10 @@ class index:
                     key.name,
                     )
 
-                return render.formresult(url)
+		print url
+		imageList.append(url)
+
+            return render.formresult(imageList)
 
 if __name__ == "__main__":
     app = web.application(urls, globals())

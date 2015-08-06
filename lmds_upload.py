@@ -1,6 +1,7 @@
 # File to S3
 # Inspired by http://fromacoder.blogspot.ie/2012/06/recursive-s3-uploading-from-python.html
 import sys
+import os
 import boto
 from boto.s3.key import Key
 import boto.s3.connection
@@ -24,10 +25,15 @@ def uploadFilesToS3(source_folder):
     for path,dir,files in os.walk(source_folder): 
         for file in files: 
             relpath = os.path.relpath(os.path.join(path,file)) 
-            if not bucket.get_key(relpath):
-                print 'sending...',relpath
-                k.key = relpath
-                k.set_contents_from_filename(relpath)
+	    fullpath = path + '/' + file
+	    print fullpath 
+
+            if not bucket.get_key(fullpath):
+                print 'sending...',fullpath
+		keyname = fullpath.replace (" ", "_")
+                print 'using keyname = ',keyname
+                k.key = keyname 
+                k.set_contents_from_filename(fullpath)
                 #try:
                 #    k.set_acl('public-read')
                 #except:

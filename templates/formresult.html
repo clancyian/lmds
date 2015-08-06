@@ -1,5 +1,6 @@
-$def with (url)
+$def with (imageList)
 
 
-$if url:
-    <img src="$url" alt="you should be seeing an image">
+$if imageList:
+    $for image in imageList:
+        <img src="$image" alt="you should be seeing an image">
