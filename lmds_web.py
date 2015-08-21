@@ -4,6 +4,9 @@ import boto
 from boto.s3.key import Key
 import boto.s3.connection
 from config import *
+import boto.dynamodb2
+from boto.dynamodb2.table import Table
+
 
 render = web.template.render('templates/')
 
@@ -15,16 +18,27 @@ myform = form.Form(
     form.Textbox('image',
         form.notnull))
 
+conndyn = boto.dynamodb2.connect_to_region(region,
+    aws_access_key_id = access_key,
+    aws_secret_access_key = secret_key,
+)
+
+link = Table(
+   'imagemetdata',
+    connection=conndyn
+)
+
+
 class index:
     def GET(self):
         form = myform()
-        return render.formtest(form)
+        return render.formhome(form)
 
     def POST(self):
 	imageList = []
         form = myform()
         if not form.validates():
-            return render.formtest(form)
+            return render.formhome(form)
         else:
 
             conn = boto.s3.connect_to_region(region,
@@ -36,22 +50,25 @@ class index:
 
             bucket = conn.get_bucket(bucket_name)
 
-            rs = bucket.list(prefix=form.d.image)
+	    print 'querying for '  + form.d.image
+	    rs = link.query_2(index='cctserialnumber-index',
+                              cctserialnumber__eq=form.d.image)
+			      
+            #rs = bucket.list(prefix=form.d.image)
 
             for key in rs:
-		print key.name
-                #myfile = bucket.get_key(key.name)
-                #myfile.get_contents_to_filename(key.name)
+		print key['fqfilepath']
+		#if key.name.endswith('bmp'):
 
                 url = conn.generate_url(
                     60,
                     'GET',
                     bucket_name,
-                    key.name,
+                    key['fqfilepath'],
                     )
 
 		print url
-		imageList.append(url)
+	        imageList.append(url)
 
             return render.formresult(imageList)
 
